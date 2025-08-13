@@ -20,8 +20,26 @@ app.config.suppress_callback_exceptions = True
 
 
 # Load data from csv
-def load_data():
-    # To do: Completar la función 
+def load_data(path="datos_energia.csv"):
+    df = pd.read_csv(path, sep=None, engine="python")
+
+    clean_col = []
+    for nombre in df.columns:
+        nombre_sin_espacios = nombre.strip()
+        clean_col.append(nombre_sin_espacios)
+
+    df.columns = clean_col
+
+    required = {"time", "AT_load_actual_entsoe_transparency", "forecast", "Upper bound", "Lower bound"}
+    missing = required - set(df.columns)
+    if missing:
+        raise ValueError(f"Faltan columnas en el CSV: {missing}")
+
+    df["time"] = pd.to_datetime(df["time"], errors="coerce", infer_datetime_format=True)
+    df = df.dropna(subset=["time"]).sort_values("time").set_index("time")
+
+    return df
+
     
 
 # Cargar datos
